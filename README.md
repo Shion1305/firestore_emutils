@@ -2,6 +2,8 @@
 
 EMUTILS for Firestore is a small Go library designed to help you manage data in the official Firestore emulator. It’s particularly useful for integration tests or local development environments where resetting the emulator state quickly is important.
 
+[![codecov](https://codecov.io/gh/Shion1305/firestore_emutils/graph/badge.svg?token=fi23EADawz)](https://codecov.io/gh/Shion1305/firestore_emutils)
+
 ## Features
 - Clear all data in your local Firestore emulator with a single call.
 
