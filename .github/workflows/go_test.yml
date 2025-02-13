@@ -1,0 +1,33 @@
+name: Run Go test with Emulator Sidecar
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '^1.23'
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
+      - name: Launch Emulator
+        run: |
+          make HOST=localhost PORT=8030 launch_emulator &
+          sleep 10
+      - name: Run test
+        env:
+          EMULATOR_HOST: localhost
+          EMULATOR_PORT: 8030
+        run: |
+          go test ./...
