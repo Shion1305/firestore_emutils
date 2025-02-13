@@ -21,19 +21,21 @@ func NewEmulator(
 
 // ClearData sends DELETE request to emulator host
 func (info EmulatorInfo) ClearData(projectID string) error {
-	url := fmt.Sprintf("http://%s:%d/emulator/v1/projects/%s/databases/(default)/documents",
-		info.Host, info.Port, projectID)
+	url := fmt.Sprintf(
+		"http://%s:%d/emulator/v1/projects/%s/databases/(default)/documents",
+		info.Host, info.Port, projectID,
+	)
 	req, err := http.NewRequest(
 		"DELETE",
 		url,
 		nil,
 	)
 	if err != nil {
-		return fmt.Errorf("faield to create request: %v", err)
+		return fmt.Errorf("failed to create request: %v", err)
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("faield to send request: %v", err)
+		return fmt.Errorf("failed to send request: %v", err)
 	}
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
