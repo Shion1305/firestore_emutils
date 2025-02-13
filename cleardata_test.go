@@ -16,6 +16,8 @@ func TestEmulatorInfo_ClearData(t *testing.T) {
 	host, port, err := setupEnv()
 	require.NoError(t, err)
 
+	projectID := "test"
+
 	tests := []struct {
 		prerequires func() error
 		name        string
@@ -25,20 +27,20 @@ func TestEmulatorInfo_ClearData(t *testing.T) {
 		{
 			prerequires: func() error {
 				ctx := context.Background()
-				client, err := firestore.NewClient(ctx, "test")
+				client, err := firestore.NewClient(ctx, projectID)
 				if err != nil {
 					return err
 				}
 				colsRef := client.Collection("emulator")
 				_, _, err = colsRef.Add(ctx, map[string]interface{}{
-					"tests": "test",
+					"Shion": "Ichikawa",
 				})
 				return err
 			},
 			exec: func() error { return nil },
 			requires: func(t *testing.T) error {
 				ctx := context.Background()
-				client, err := firestore.NewClient(ctx, "test")
+				client, err := firestore.NewClient(ctx, projectID)
 				if err != nil {
 					return fmt.Errorf("could not create Firestore client: %v", err)
 				}
@@ -54,23 +56,23 @@ func TestEmulatorInfo_ClearData(t *testing.T) {
 		{
 			prerequires: func() error {
 				ctx := context.Background()
-				client, err := firestore.NewClient(ctx, "test")
+				client, err := firestore.NewClient(ctx, projectID)
 				if err != nil {
 					return err
 				}
 				colsRef := client.Collection("emulator")
 				_, _, err = colsRef.Add(ctx, map[string]interface{}{
-					"tests": "test",
+					"Shion": "Ichikawa",
 				})
 				return err
 			},
 			exec: func() error {
-				emu := NewEmulator(host, port, "test")
-				return emu.ClearData()
+				emu := NewEmulator(host, port)
+				return emu.ClearData(projectID)
 			},
 			requires: func(t *testing.T) error {
 				ctx := context.Background()
-				client, err := firestore.NewClient(ctx, "test")
+				client, err := firestore.NewClient(ctx, projectID)
 				if err != nil {
 					return fmt.Errorf("could not create Firestore client: %v", err)
 				}
@@ -96,10 +98,13 @@ func TestEmulatorInfo_ClearData(t *testing.T) {
 func setupEnv() (host string, port int, err error) {
 	host = os.Getenv("EMULATOR_HOST")
 	portStr := os.Getenv("EMULATOR_PORT")
-	port64, err := strconv.ParseInt(portStr, 10, 32)
+	port, err = strconv.Atoi(portStr)
+	if err != nil {
+		return host, port, fmt.Errorf("could not parse env var EMULATOR_PORT: %v", err)
+	}
 	hostParam := fmt.Sprintf("%s:%d", host, port)
-	if err := os.Setenv("EMULATOR_HOST", hostParam); err != nil {
+	if err := os.Setenv("FIRESTORE_EMULATOR_HOST", hostParam); err != nil {
 		return host, port, err
 	}
-	return host, int(port64), err
+	return host, port, err
 }

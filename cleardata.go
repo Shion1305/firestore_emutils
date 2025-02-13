@@ -6,25 +6,23 @@ import (
 )
 
 type EmulatorInfo struct {
-	Host      string
-	Port      int
-	ProjectID string
+	Host string
+	Port int
 }
 
 func NewEmulator(
 	Host string,
 	Port int,
-	ProjectID string,
 ) EmulatorInfo {
 	return EmulatorInfo{
-		Host, Port, ProjectID,
+		Host, Port,
 	}
 }
 
 // ClearData sends DELETE request to emulator host
-func (info EmulatorInfo) ClearData() error {
+func (info EmulatorInfo) ClearData(projectID string) error {
 	url := fmt.Sprintf("http://%s:%d/emulator/v1/projects/%s/databases/(default)/documents",
-		info.Host, info.Port, info.ProjectID)
+		info.Host, info.Port, projectID)
 	req, err := http.NewRequest(
 		"DELETE",
 		url,
