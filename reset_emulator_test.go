@@ -2,6 +2,7 @@ package emutils_test
 
 import (
 	"context"
+	"github.com/stretchr/testify/require"
 	"os"
 	"strings"
 	"testing"
@@ -18,6 +19,10 @@ func TestResetEmulatorIntegration(t *testing.T) {
 	if defaultValue == "" {
 		t.Skip("FIRESTORE_EMULATOR_HOST not set; skipping integration test.")
 	}
+	defer func() {
+		_ = os.Setenv("FIRESTORE_EMULATOR_HOST", defaultValue)
+		_ = os.Unsetenv("FIRESTORE_EMULATOR_PORT")
+	}()
 	tests := []struct {
 		name      string
 		projectID string
@@ -44,9 +49,23 @@ func TestResetEmulatorIntegration(t *testing.T) {
 			name:      "Valid Reset with FIRESTORE_EMULATOR_PORT",
 			projectID: "test-project",
 			setup: func(t *testing.T) {
-				_ = os.Unsetenv("FIRESTORE_EMULATOR_HOST")
 				splits := strings.Split(defaultValue, ":")
-				p := splits[len(splits)-1]
+				require.Len(t, splits, 2)
+				p := splits[1]
+				_ = os.Unsetenv("FIRESTORE_EMULATOR_HOST")
+				_ = os.Setenv("FIRESTORE_EMULATOR_PORT", p)
+			},
+			wantErr: false,
+		},
+		{
+			name:      "Valid Reset with FIRESTORE_EMULATOR_HOST,FIRESTORE_EMULATOR_PORT",
+			projectID: "test-project",
+			setup: func(t *testing.T) {
+				splits := strings.Split(defaultValue, ":")
+				require.Len(t, splits, 2)
+				h := splits[0]
+				p := splits[1]
+				_ = os.Setenv("FIRESTORE_EMULATOR_HOST", h)
 				_ = os.Setenv("FIRESTORE_EMULATOR_PORT", p)
 			},
 			wantErr: false,
@@ -64,6 +83,14 @@ func TestResetEmulatorIntegration(t *testing.T) {
 			projectID: "invalidID",
 			setup: func(t *testing.T) {
 				_ = os.Setenv("FIRESTORE_EMULATOR_HOST", defaultValue)
+			},
+			wantErr: true,
+		},
+		{
+			name:      "Invalid HOST",
+			projectID: "test-project",
+			setup: func(t *testing.T) {
+				_ = os.Setenv("FIRESTORE_EMULATOR_HOST", "invalidhost")
 			},
 			wantErr: true,
 		},
