@@ -1,0 +1,9 @@
+version: "2"
+linters:
+formatters:
+  enable:
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/Shion1305/firestore_emutils
