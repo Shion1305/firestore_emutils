@@ -27,10 +27,15 @@ jobs:
           sleep 10
       - name: Run test
         env:
-          EMULATOR_HOST: localhost
-          EMULATOR_PORT: 8030
+          FIRESTORE_EMULATOR_HOST: localhost:8030
         run: |
           go test ./... -coverprofile=coverage.txt
+      - uses: aquaproj/aqua-installer@5e54e5cee8a95ee2ce7c04cb993da6dfad13e59c # v3.1.2
+        with:
+          aqua_version: v2.45.0
+      - name: Run golangci-lint
+        run: |
+          golangci-lint run
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
