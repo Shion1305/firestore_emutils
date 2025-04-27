@@ -161,7 +161,9 @@ func TestResetEmulator_AddDocsThenReset(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create Firestore client: %v", err)
 	}
-	defer client.Close()
+	defer func(client *firestore.Client) {
+		_ = client.Close()
+	}(client)
 
 	// Insert a document
 	_, err = client.Collection(collection).Doc(document).Set(ctx, map[string]interface{}{
