@@ -27,8 +27,7 @@ jobs:
           sleep 10
       - name: Run test
         env:
-          EMULATOR_HOST: localhost
-          EMULATOR_PORT: 8030
+          FIRESTORE_EMULATOR_HOST: localhost:8030
         run: |
           go test ./... -coverprofile=coverage.txt
       - name: Upload coverage reports to Codecov
