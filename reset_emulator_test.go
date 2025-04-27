@@ -2,16 +2,17 @@ package emutils_test
 
 import (
 	"context"
-	"github.com/stretchr/testify/require"
 	"os"
 	"strings"
 	"testing"
 
 	"cloud.google.com/go/firestore"
-	emutils "github.com/Shion1305/firestore_emutils"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	emutils "github.com/Shion1305/firestore_emutils"
 )
 
 func TestResetEmulatorIntegration(t *testing.T) {
@@ -27,6 +28,7 @@ func TestResetEmulatorIntegration(t *testing.T) {
 		name      string
 		projectID string
 		setup     func(t *testing.T)
+		reset     func() error
 		wantErr   bool
 	}{
 		{
@@ -35,6 +37,9 @@ func TestResetEmulatorIntegration(t *testing.T) {
 			setup: func(t *testing.T) {
 				_ = os.Unsetenv("FIRESTORE_EMULATOR_HOST")
 			},
+			reset: func() error {
+				return nil
+			},
 			wantErr: true,
 		},
 		{
@@ -42,6 +47,9 @@ func TestResetEmulatorIntegration(t *testing.T) {
 			projectID: "test-project",
 			setup: func(t *testing.T) {
 				_ = os.Setenv("FIRESTORE_EMULATOR_HOST", defaultValue)
+			},
+			reset: func() error {
+				return os.Unsetenv("FIRESTORE_EMULATOR_HOST")
 			},
 			wantErr: false,
 		},
@@ -54,6 +62,9 @@ func TestResetEmulatorIntegration(t *testing.T) {
 				p := splits[1]
 				_ = os.Unsetenv("FIRESTORE_EMULATOR_HOST")
 				_ = os.Setenv("FIRESTORE_EMULATOR_PORT", p)
+			},
+			reset: func() error {
+				return os.Unsetenv("FIRESTORE_EMULATOR_PORT")
 			},
 			wantErr: false,
 		},
@@ -68,6 +79,12 @@ func TestResetEmulatorIntegration(t *testing.T) {
 				_ = os.Setenv("FIRESTORE_EMULATOR_HOST", h)
 				_ = os.Setenv("FIRESTORE_EMULATOR_PORT", p)
 			},
+			reset: func() error {
+				if err := os.Unsetenv("FIRESTORE_EMULATOR_HOST"); err != nil {
+					return err
+				}
+				return os.Unsetenv("FIRESTORE_EMULATOR_PORT")
+			},
 			wantErr: false,
 		},
 		{
@@ -75,6 +92,9 @@ func TestResetEmulatorIntegration(t *testing.T) {
 			projectID: "",
 			setup: func(t *testing.T) {
 				_ = os.Setenv("FIRESTORE_EMULATOR_HOST", defaultValue)
+			},
+			reset: func() error {
+				return os.Unsetenv("FIRESTORE_EMULATOR_HOST")
 			},
 			wantErr: true,
 		},
@@ -84,6 +104,9 @@ func TestResetEmulatorIntegration(t *testing.T) {
 			setup: func(t *testing.T) {
 				_ = os.Setenv("FIRESTORE_EMULATOR_HOST", defaultValue)
 			},
+			reset: func() error {
+				return os.Unsetenv("FIRESTORE_EMULATOR_HOST")
+			},
 			wantErr: true,
 		},
 		{
@@ -91,6 +114,9 @@ func TestResetEmulatorIntegration(t *testing.T) {
 			projectID: "test-project",
 			setup: func(t *testing.T) {
 				_ = os.Setenv("FIRESTORE_EMULATOR_HOST", "invalidhost")
+			},
+			reset: func() error {
+				return os.Unsetenv("FIRESTORE_EMULATOR_HOST")
 			},
 			wantErr: true,
 		},
@@ -100,6 +126,11 @@ func TestResetEmulatorIntegration(t *testing.T) {
 		tc := tc // capture range variable
 		t.Run(tc.name, func(t *testing.T) {
 			tc.setup(t)
+			defer func() {
+				if err := tc.reset(); err != nil {
+					t.Fatalf("failed to exec reset step on testcase %s: %v", tc.name, err)
+				}
+			}()
 
 			err := emutils.ResetEmulator(tc.projectID)
 			if tc.wantErr && err == nil {
