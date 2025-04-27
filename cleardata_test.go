@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 
 	"cloud.google.com/go/firestore"
@@ -13,7 +14,7 @@ import (
 )
 
 func TestEmulatorInfo_ClearData(t *testing.T) {
-	host, port, err := setupEnv()
+	host, port, err := setupEnv(t)
 	require.NoError(t, err)
 
 	projectID := "test"
@@ -95,16 +96,15 @@ func TestEmulatorInfo_ClearData(t *testing.T) {
 	}
 }
 
-func setupEnv() (host string, port int, err error) {
-	host = os.Getenv("EMULATOR_HOST")
-	portStr := os.Getenv("EMULATOR_PORT")
-	port, err = strconv.Atoi(portStr)
-	if err != nil {
-		return host, port, fmt.Errorf("could not parse env var EMULATOR_PORT: %v", err)
+func setupEnv(t *testing.T) (host string, port int, err error) {
+	hostRaw := os.Getenv("FIRESTORE_EMULATOR_HOST")
+	if hostRaw == "" {
+		t.Skip("FIRESTORE_EMULATOR_HOST not set, skipping test")
 	}
-	hostParam := fmt.Sprintf("%s:%d", host, port)
-	if err := os.Setenv("FIRESTORE_EMULATOR_HOST", hostParam); err != nil {
-		return host, port, err
-	}
+	parts := strings.Split(hostRaw, ":")
+	require.Len(t, parts, 2, "FIRESTORE_EMULATOR_HOST should be in the format host:port")
+	host = parts[0]
+	port, err = strconv.Atoi(parts[1])
+	require.NoError(t, err, "FIRESTORE_EMULATOR_HOST port should be an integer")
 	return host, port, err
 }
