@@ -21,9 +21,7 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v2'
         with:
           version: '>= 363.0.0'
-      - name: Install Firestore Emulator
-        run: |
-          gcloud components install cloud-firestore-emulator --quiet
+          install_components: 'cloud-firestore-emulator'
       - name: Launch Emulator
         run: |
           make HOST=localhost PORT=8030 launch_emulator &
