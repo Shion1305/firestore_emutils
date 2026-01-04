@@ -26,6 +26,9 @@ jobs:
         run: |
           make HOST=localhost PORT=8030 launch_emulator &
           sleep 10
+      - name: Wait for emulator to be ready
+        run: |
+          timeout 30 bash -c 'until curl -s http://localhost:8030 > /dev/null; do sleep 1; done' || echo "Emulator may not be fully ready"
       - name: Run test
         env:
           FIRESTORE_EMULATOR_HOST: localhost:8030
