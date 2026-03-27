@@ -32,7 +32,7 @@ jobs:
           go test ./... -coverprofile=coverage.txt
       - uses: aquaproj/aqua-installer@5e54e5cee8a95ee2ce7c04cb993da6dfad13e59c # v3.1.2
         with:
-          aqua_version: v2.45.0
+          aqua_version: v2.57.1
       - name: Run golangci-lint
         run: |
           golangci-lint run
